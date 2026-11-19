@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mano asistentas</title>
+<meta name="theme-color" content="#2f6f4f">
+<style>
+  :root{
+    --bg:#f6f6f4; --card:#ffffff; --line:#e4e4df; --text:#1c1c1a; --muted:#73736d;
+    --accent:#2f6f4f; --accent-soft:#e7f1ea; --warn:#b4452f; --warn-soft:#fbeae6;
+    --today:#9a6b1f; --today-soft:#fcf3e2; --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#17171a; --card:#212126; --line:#34343b; --text:#f0f0ee; --muted:#9a9a95;
+      --accent:#7fc3a0; --accent-soft:#223029; --warn:#ef8a74; --warn-soft:#39241f;
+      --today:#e0b263; --today-soft:#36291a;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    font-size:16px; line-height:1.45; -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:680px;margin:0 auto;padding:18px 16px 64px}
+  header h1{font-size:22px;font-weight:700;letter-spacing:-0.01em;margin:0 0 2px}
+  header p{margin:0;color:var(--muted);font-size:13px}
+
+  .bigmic{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    width:100%;margin:14px 0 6px;padding:18px;
+    border:1px solid var(--accent);border-radius:var(--radius);
+    background:var(--accent-soft);color:var(--accent);
+    font-family:inherit;font-size:18px;font-weight:700;cursor:pointer;
+  }
+  .bigmic .dot{width:12px;height:12px;border-radius:50%;background:var(--accent)}
+  .bigmic.live{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+  .bigmic.live .dot{background:var(--warn);animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+  .status{margin:0 0 10px;font-size:13px;color:var(--muted);text-align:center}
+
+  .undobar{
+    display:flex;align-items:center;gap:10px;
+    background:var(--accent-soft);border:1px solid var(--accent);
+    border-radius:var(--radius);padding:10px 12px;margin-bottom:12px;font-size:14px;
+  }
+  .undobar span{flex:1}
+  .undobar button{
+    border:1px solid var(--accent);background:transparent;color:var(--accent);
+    font-family:inherit;font-size:13px;font-weight:600;padding:6px 10px;border-radius:9px;cursor:pointer;
+  }
+
+  .summary{display:flex;gap:8px;margin:14px 0}
+  .sumcard{flex:1;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px}
+  .sumcard .n{font-size:20px;font-weight:700;line-height:1.1}
+  .sumcard .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+  .sumcard.late .n{color:var(--warn)}
+  .sumcard.today .n{color:var(--today)}
+
+  nav{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:5px;margin-bottom:14px}
+  nav button{flex:1;border:0;background:transparent;color:var(--muted);font-family:inherit;font-size:13.5px;font-weight:600;padding:9px 4px;border-radius:10px;cursor:pointer}
+  nav button.on{background:var(--accent-soft);color:var(--accent)}
+  nav button .badge{display:inline-block;min-width:18px;margin-left:4px;padding:0 4px;border-radius:9px;background:var(--line);color:var(--muted);font-size:11px;font-weight:700}
+  nav button.on .badge{background:var(--accent);color:var(--card)}
+
+  form.add{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  input[type=text]{
+    flex:1 1 140px;min-width:0;background:var(--card);border:1px solid var(--line);
+    border-radius:11px;color:var(--text);font-family:inherit;font-size:15px;padding:11px 12px;
+  }
+  input.whenin{flex:0 1 128px}
+  input::placeholder{color:var(--muted)}
+  input:focus{outline:2px solid var(--accent);outline-offset:-1px}
+  button.primary{
+    background:var(--accent);color:#fff;border:0;border-radius:11px;
+    font-family:inherit;font-size:15px;font-weight:600;padding:11px 18px;cursor:pointer;
+  }
+  @media (prefers-color-scheme: dark){ button.primary{color:#17171a} }
+  .chips{display:flex;gap:6px;flex-wrap:wrap;width:100%;margin:-2px 0 2px}
+  .chip{border:1px solid var(--line);background:var(--card);color:var(--muted);font-family:inherit;font-size:13px;padding:7px 11px;border-radius:10px;cursor:pointer}
+  .chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+
+  ul.list{list-style:none;margin:0;padding:0}
+  ul.list li{display:flex;align-items:flex-start;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:11px 12px;margin-bottom:8px}
+  ul.list li.done{opacity:.5}
+  ul.list li.late{border-color:var(--warn);background:var(--warn-soft)}
+  ul.list li.isnow{border-color:var(--today);background:var(--today-soft)}
+  .check{flex:0 0 22px;width:22px;height:22px;margin-top:1px;border:1.5px solid var(--line);border-radius:7px;background:transparent;cursor:pointer;padding:0;color:var(--accent);font-size:14px;font-weight:700;line-height:20px}
+  .check.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  @media (prefers-color-scheme: dark){ .check.on{color:#17171a} }
+  .body{flex:1;min-width:0}
+  .body .t{font-size:15px;font-weight:500;word-wrap:break-word}
+  ul.list li.done .t{text-decoration:line-through}
+  .body .m{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .body .m b{color:var(--warn);font-weight:600}
+  .body .m i{color:var(--today);font-style:normal;font-weight:600}
+  .gcal{border:1px solid var(--line);background:var(--card);color:var(--accent);font-family:inherit;font-size:12.5px;font-weight:600;padding:5px 9px;border-radius:9px;text-decoration:none;white-space:nowrap}
+  .del{flex:0 0 auto;border:0;background:transparent;color:var(--muted);font-family:inherit;font-size:18px;line-height:1;padding:2px 4px;cursor:pointer}
+  .empty{color:var(--muted);font-size:14px;text-align:center;padding:26px 10px;border:1px dashed var(--line);border-radius:var(--radius)}
+  .tools{display:flex;justify-content:flex-end;margin-top:10px}
+  .tools button{border:1px solid var(--line);background:var(--card);color:var(--muted);font-family:inherit;font-size:13px;padding:7px 12px;border-radius:10px;cursor:pointer}
+  .note{margin-top:18px;font-size:12.5px;color:var(--muted);text-align:center}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Mano asistentas</h1>
+    <p id="dateline"></p>
+  </header>
+
+  <button type="button" class="bigmic hidden" id="bigMic">
+    <span class="dot"></span><span id="bigMicLabel">Kalbėk</span>
+  </button>
+  <p class="status" id="status"></p>
+
+  <div class="undobar hidden" id="undoBar">
+    <span id="undoText"></span>
+    <button type="button" id="undoBtn">Atšaukti</button>
+  </div>
+
+  <div class="summary">
+    <div class="sumcard late"><div class="n" id="sumLate">0</div><div class="l">Pradelsta</div></div>
+    <div class="sumcard today"><div class="n" id="sumToday">0</div><div class="l">Šiandien</div></div>
+    <div class="sumcard"><div class="n" id="sumShop">0</div><div class="l">Pirkiniai</div></div>
+  </div>
+
+  <nav>
+    <button id="tabU" class="on">Užduotys <span class="badge" id="bU">0</span></button>
+    <button id="tabA">Atrašyti <span class="badge" id="bA">0</span></button>
+    <button id="tabP">Pirkiniai <span class="badge" id="bP">0</span></button>
+  </nav>
+
+  <section id="viewU">
+    <form class="add" id="formU">
+      <input type="text" id="inU" placeholder="Ką reikia padaryti?" autocomplete="off">
+      <div class="chips" id="chipsU">
+        <button type="button" class="chip on" data-d="">Be datos</button>
+        <button type="button" class="chip" data-d="0">Šiandien</button>
+        <button type="button" class="chip" data-d="1">Rytoj</button>
+        <button type="button" class="chip" data-d="2">Poryt</button>
+      </div>
+      <input type="text" class="whenin" id="dateU" placeholder="2026-11-25" inputmode="numeric" autocomplete="off">
+      <input type="text" class="whenin" id="timeU" placeholder="18:30" inputmode="numeric" autocomplete="off">
+      <button type="submit" class="primary">Įrašyti</button>
+    </form>
+    <ul class="list" id="listU"></ul>
+    <div class="empty hidden" id="emptyU">Užduočių nėra.</div>
+    <div class="tools"><button id="clearU">Išmesti atliktas</button></div>
+  </section>
+
+  <section id="viewA" class="hidden">
+    <form class="add" id="formA">
+      <input type="text" id="inA" placeholder="Kam atrašyti? (vardas)" autocomplete="off">
+      <input type="text" id="topicA" placeholder="Dėl ko?" autocomplete="off">
+      <div class="chips" id="chipsA">
+        <button type="button" class="chip on" data-d="">Be datos</button>
+        <button type="button" class="chip" data-d="0">Šiandien</button>
+        <button type="button" class="chip" data-d="1">Rytoj</button>
+        <button type="button" class="chip" data-d="2">Poryt</button>
+      </div>
+      <input type="text" class="whenin" id="dateA" placeholder="2026-11-25" inputmode="numeric" autocomplete="off">
+      <input type="text" class="whenin" id="timeA" placeholder="18:30" inputmode="numeric" autocomplete="off">
+      <button type="submit" class="primary">Įrašyti</button>
+    </form>
+    <ul class="list" id="listA"></ul>
+    <div class="empty hidden" id="emptyA">Neatsakytų laiškų nėra.</div>
+    <div class="tools"><button id="clearA">Išmesti atsakytus</button></div>
+  </section>
+
+  <section id="viewP" class="hidden">
+    <form class="add" id="formP">
+      <input type="text" id="inP" placeholder="Ką nupirkti? (pienas, duona, kava)" autocomplete="off">
+      <button type="submit" class="primary">Įrašyti</button>
+    </form>
+    <ul class="list" id="listP"></ul>
+    <div class="empty hidden" id="emptyP">Pirkinių sąrašas tuščias.</div>
+    <div class="tools"><button id="clearP">Išmesti nupirktus</button></div>
+  </section>
+
+  <p class="note" id="note">Duomenys saugomi šiame įrenginyje.</p>
+</div>
+
+<script>
+var COLS = ["uzduotys", "atrasymai", "pirkiniai"];
+var state = { uzduotys: [], atrasymai: [], pirkiniai: [] };
+var LKEY = "asistentas-gh-v1";
+var lastAdded = [];
+var undoTimer = null;
+
+/* ---------- pagalbinės ---------- */
+
+function pad2(n){ return n < 10 ? "0" + n : "" + n; }
+
+function todayStr(){
+  var d = new Date();
+  return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+}
+
+function nowTime(){
+  var d = new Date();
+  return pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+}
+
+function dateAfter(days){
+  var d = new Date();
+  d.setDate(d.getDate() + Number(days));
+  return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+}
+
+function newId(){
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function setStatus(txt){
+  document.getElementById("status").textContent = txt || "";
+}
+
+/* ---------- saugojimas telefone ---------- */
+
+function load(){
+  try {
+    var raw = localStorage.getItem(LKEY);
+    if (!raw) return;
+    var obj = JSON.parse(raw);
+    COLS.forEach(function(c){ if (Array.isArray(obj[c])) state[c] = obj[c]; });
+  } catch (e) {}
+}
+
+function save(){
+  try { localStorage.setItem(LKEY, JSON.stringify(state)); } catch (e) {}
+}
+
+function putItem(col, item){
+  var arr = state[col];
+  var rastas = false;
+  for (var i = 0; i < arr.length; i++){
+    if (arr[i].id === item.id){ arr[i] = item; rastas = true; }
+  }
+  if (!rastas) arr.push(item);
+  save();
+  render();
+}
+
+function dropItem(col, id){
+  state[col] = state[col].filter(function(x){ return x.id !== id; });
+  save();
+  render();
+}
+
+/* ---------- datos ir laiko apdorojimas ---------- */
+
+function normDate(v){
+  v = (v || "").trim();
+  if (!v) return "";
+  if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(v)){
+    var a = v.split("-");
+    return a[0] + "-" + pad2(Number(a[1])) + "-" + pad2(Number(a[2]));
+  }
+  var m = v.match(/^(\d{1,2})[.\/-](\d{1,2})(?:[.\/-](\d{2,4}))?$/);
+  if (m){
+    var metai = m[3] ? Number(m[3]) : new Date().getFullYear();
+    if (metai < 100) metai = 2000 + metai;
+    return metai + "-" + pad2(Number(m[2])) + "-" + pad2(Number(m[1]));
+  }
+  return "";
+}
+
+function normTime(v){
+  v = (v || "").trim().replace(/\s/g, "");
+  if (!v) return "";
+  var m = v.match(/^(\d{1,2})[:.,](\d{1,2})$/);
+  if (m) return pad2(Number(m[1])) + ":" + pad2(Number(m[2]));
+  if (/^\d{1,2}$/.test(v)) return pad2(Number(v)) + ":00";
+  if (/^\d{3}$/.test(v)) return pad2(Number(v.slice(0, 1))) + ":" + v.slice(1);
+  if (/^\d{4}$/.test(v)) return pad2(Number(v.slice(0, 2))) + ":" + v.slice(2);
+  return "";
+}
+
+var SAVAITE = [
+  { v: "sekmadien", n: 0 }, { v: "pirmadien", n: 1 }, { v: "antradien", n: 2 },
+  { v: "treciadien", n: 3 }, { v: "trečiadien", n: 3 }, { v: "ketvirtadien", n: 4 },
+  { v: "penktadien", n: 5 }, { v: "sestadien", n: 6 }, { v: "šeštadien", n: 6 }
+];
+
+function kitaSavaitesDiena(n){
+  var d = new Date();
+  var skirtumas = (n - d.getDay() + 7) % 7;
+  if (skirtumas === 0) skirtumas = 7;
+  d.setDate(d.getDate() + skirtumas);
+  return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+}
+
+/* Iš sakinio ištraukia datą, laiką ir švarų tekstą. */
+function suprask(fraze){
+  var txt = " " + fraze.trim() + " ";
+  var zemas = txt.toLowerCase();
+  var data = "";
+  var laikas = "";
+
+  if (zemas.indexOf("poryt") >= 0){ data = dateAfter(2); txt = txt.replace(/poryt/gi, " "); }
+  else if (zemas.indexOf("rytoj") >= 0){ data = dateAfter(1); txt = txt.replace(/rytoj/gi, " "); }
+  else if (zemas.indexOf("siandien") >= 0 || zemas.indexOf("šiandien") >= 0){
+    data = todayStr(); txt = txt.replace(/[sš]iandien/gi, " ");
+  } else {
+    for (var i = 0; i < SAVAITE.length; i++){
+      if (zemas.indexOf(SAVAITE[i].v) >= 0){
+        data = kitaSavaitesDiena(SAVAITE[i].n);
+        txt = txt.replace(new RegExp(SAVAITE[i].v + "[ioįį]*", "gi"), " ");
+        break;
+      }
+    }
+  }
+
+  var mt = txt.match(/\b(\d{1,2})[:.](\d{2})\b/);
+  if (mt){
+    laikas = pad2(Number(mt[1])) + ":" + mt[2];
+    txt = txt.replace(mt[0], " ");
+  } else {
+    var mv = txt.match(/\b(\d{1,2})\s*(?:val\.?|valand[^\s]*)/i);
+    if (mv){
+      laikas = pad2(Number(mv[1])) + ":00";
+      txt = txt.replace(mv[0], " ");
+    }
+  }
+
+  if (laikas && !data){
+    data = laikas < nowTime() ? dateAfter(1) : todayStr();
+  }
+
+  txt = txt.replace(/\s{2,}/g, " ").replace(/^[\s,.-]+|[\s,.-]+$/g, "");
+  if (txt) txt = txt.charAt(0).toUpperCase() + txt.slice(1);
+  return { tekstas: txt, data: data, laikas: laikas };
+}
+
+var PIRKINIU_ZODZIAI = /(pirkini|nupirk|nusipirk|parduotuv|i[sš] krautuv)/i;
+var ATRASYMO_ZODZIAI = /(atra[sš]yt|atsakyt|para[sš]yti žinut|para[sš]yk žinut|atsakyk)/i;
+
+function irasykFraze(fraze){
+  fraze = (fraze || "").trim();
+  if (!fraze){ setStatus("Nieko neišgirdau."); return; }
+
+  lastAdded = [];
+  var pav = [];
+
+  if (PIRKINIU_ZODZIAI.test(fraze)){
+    var svarus = fraze.replace(/^.*?(?:pirkini[^\s]*|nupirk[^\s]*|nusipirk[^\s]*)\s*/i, "");
+    svarus = svarus.replace(/^(i|į)\s+/i, "");
+    var dalys = svarus.split(/,|;| ir /i);
+    for (var i = 0; i < dalys.length; i++){
+      var vienas = dalys[i].trim().replace(/\.$/, "");
+      if (!vienas) continue;
+      vienas = vienas.charAt(0).toUpperCase() + vienas.slice(1);
+      var id = newId();
+      putItem("pirkiniai", { id: id, tekstas: vienas, atlikta: false, sukurta: new Date().toISOString() });
+      lastAdded.push({ col: "pirkiniai", id: id });
+      pav.push(vienas);
+    }
+  } else {
+    var r = suprask(fraze);
+    if (!r.tekstas){ setStatus("Nesupratau: " + fraze); return; }
+    var col = ATRASYMO_ZODZIAI.test(fraze) ? "atrasymai" : "uzduotys";
+    var id2 = newId();
+    var naujas = { id: id2, data: r.data, laikas: r.laikas, atlikta: false, sukurta: new Date().toISOString() };
+    if (col === "atrasymai"){
+      var kam = r.tekstas.replace(/^(atra[sš]\w*|atsak\w*|para[sš]\w*|[zž]inut\w*)\s+/i, "");
+      kam = kam.replace(/^(atra[sš]\w*|atsak\w*|para[sš]\w*|[zž]inut\w*)\s+/i, "");
+      kam = kam.replace(/\s{2,}/g, " ").trim();
+      if (kam) kam = kam.charAt(0).toUpperCase() + kam.slice(1);
+      naujas.kam = kam || r.tekstas;
+      naujas.tema = "";
+    } else {
+      naujas.tekstas = r.tekstas;
+    }
+    putItem(col, naujas);
+    lastAdded.push({ col: col, id: id2 });
+    pav.push(r.tekstas + (r.laikas ? " " + r.laikas : ""));
+  }
+
+  if (!lastAdded.length){ setStatus("Nesupratau: " + fraze); return; }
+  setStatus("");
+  var bar = document.getElementById("undoBar");
+  document.getElementById("undoText").textContent = "Pridėta: " + pav.join(", ");
+  bar.classList.remove("hidden");
+  if (undoTimer) clearTimeout(undoTimer);
+  undoTimer = setTimeout(function(){ bar.classList.add("hidden"); }, 15000);
+}
+
+document.getElementById("undoBtn").onclick = function(){
+  lastAdded.forEach(function(x){ dropItem(x.col, x.id); });
+  lastAdded = [];
+  document.getElementById("undoBar").classList.add("hidden");
+  setStatus("Atšaukta.");
+};
+
+/* ---------- balsas ---------- */
+
+var atpazinimas = null;
+var klausosi = false;
+var surinkta = "";
+
+function balsoPalaikymas(){
+  return window.SpeechRecognition || window.webkitSpeechRecognition || null;
+}
+
+function initBalsas(){
+  var SR = balsoPalaikymas();
+  var mygtukas = document.getElementById("bigMic");
+  if (!SR){
+    setStatus("Ši naršyklė mikrofono nepalaiko — įrašyk ranka.");
+    return;
+  }
+  mygtukas.classList.remove("hidden");
+
+  atpazinimas = new SR();
+  atpazinimas.lang = "lt-LT";
+  atpazinimas.continuous = true;
+  atpazinimas.interimResults = true;
+
+  atpazinimas.onstart = function(){
+    klausosi = true;
+    surinkta = "";
+    atnaujinkMygtuka();
+    setStatus("Klausausi...");
+  };
+
+  atpazinimas.onresult = function(e){
+    var galutinis = "";
+    var tarpinis = "";
+    for (var i = e.resultIndex; i < e.results.length; i++){
+      var t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) galutinis += t + " ";
+      else tarpinis += t;
+    }
+    if (galutinis) surinkta += galutinis;
+    setStatus((surinkta + tarpinis).trim() || "Klausausi...");
+  };
+
+  atpazinimas.onerror = function(e){
+    klausosi = false;
+    atnaujinkMygtuka();
+    var k = e && e.error ? e.error : "klaida";
+    if (k === "not-allowed" || k === "service-not-allowed"){
+      setStatus("Mikrofonas neleidžiamas. Leisk naršyklei naudoti mikrofoną.");
+    } else if (k === "no-speech"){
+      setStatus("Negirdėjau kalbos.");
+    } else {
+      setStatus("Mikrofono klaida: " + k);
+    }
+  };
+
+  atpazinimas.onend = function(){
+    klausosi = false;
+    atnaujinkMygtuka();
+    var fraze = surinkta.trim();
+    surinkta = "";
+    if (fraze) irasykFraze(fraze);
+  };
+
+  mygtukas.onclick = function(){
+    if (klausosi){
+      try { atpazinimas.stop(); } catch (e) {}
+      return;
+    }
+    try { atpazinimas.start(); } catch (e) { setStatus("Nepavyko įjungti mikrofono."); }
+  };
+}
+
+function atnaujinkMygtuka(){
+  var m = document.getElementById("bigMic");
+  m.classList.toggle("live", klausosi);
+  document.getElementById("bigMicLabel").textContent = klausosi ? "Klausausi — baigus paliesk" : "Kalbėk";
+}
+
+/* ---------- Google kalendorius ---------- */
+
+function gcalStamp(d){
+  return d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate()) +
+         "T" + pad2(d.getHours()) + pad2(d.getMinutes()) + "00";
+}
+
+function gcalLink(title, item){
+  if (!item.data || !item.laikas) return null;
+  var dalys = item.data.split("-");
+  var hm = item.laikas.split(":");
+  var start = new Date(Number(dalys[0]), Number(dalys[1]) - 1, Number(dalys[2]), Number(hm[0]), Number(hm[1]), 0);
+  var end = new Date(start.getTime() + 30 * 60000);
+  var u = "https://calendar.google.com/calendar/render?action=TEMPLATE";
+  u += "&text=" + encodeURIComponent(title);
+  u += "&dates=" + gcalStamp(start) + "/" + gcalStamp(end);
+  u += "&ctz=Europe/Vilnius";
+  var a = document.createElement("a");
+  a.className = "gcal";
+  a.href = u;
+  a.target = "_blank";
+  a.rel = "noopener";
+  a.textContent = "Kalendorius";
+  return a;
+}
+
+/* ---------- sąrašai ---------- */
+
+function statusOf(item){
+  if (item.atlikta || !item.data) return "";
+  var t = todayStr();
+  if (item.data < t) return "late";
+  if (item.data > t) return "";
+  if (item.laikas && item.laikas < nowTime()) return "late";
+  return "now";
+}
+
+function sortByDate(a, b){
+  var ad = (a.data || "9999-99-99") + " " + (a.laikas || "99:99");
+  var bd = (b.data || "9999-99-99") + " " + (b.laikas || "99:99");
+  if (ad !== bd) return ad < bd ? -1 : 1;
+  return (a.sukurta || "") < (b.sukurta || "") ? -1 : 1;
+}
+
+function sortList(arr){
+  var open = arr.filter(function(x){ return !x.atlikta; }).sort(sortByDate);
+  var done = arr.filter(function(x){ return x.atlikta; }).sort(sortByDate);
+  return open.concat(done);
+}
+
+function dateLabel(item){
+  var d = item.data;
+  var val = item.laikas || "";
+  if (!d) return val ? val + " val." : "";
+  var suffix = val ? " " + val : "";
+  var st = statusOf(item);
+  if (st === "late") return "<b>pradelsta — " + d + suffix + "</b>";
+  if (st === "now") return "<i>šiandien" + suffix + "</i>";
+  if (d === todayStr()) return "šiandien" + suffix;
+  return "iki " + d + suffix;
+}
+
+function rowClass(item){
+  if (item.atlikta) return "done";
+  var st = statusOf(item);
+  if (st === "late") return "late";
+  if (st === "now") return "isnow";
+  return "";
+}
+
+function escapeText(s){
+  return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function renderList(col, listEl, emptyEl, titleOf, metaOf, extraOf){
+  var arr = sortList(state[col]);
+  listEl.innerHTML = "";
+  if (!arr.length){ emptyEl.classList.remove("hidden"); return; }
+  emptyEl.classList.add("hidden");
+  arr.forEach(function(item){
+    var li = document.createElement("li");
+    li.className = rowClass(item);
+
+    var chk = document.createElement("button");
+    chk.className = "check" + (item.atlikta ? " on" : "");
+    chk.innerHTML = item.atlikta ? "&#10003;" : "";
+    chk.onclick = function(){
+      var copy = {};
+      for (var k in item) copy[k] = item[k];
+      copy.atlikta = !item.atlikta;
+      putItem(col, copy);
+    };
+
+    var body = document.createElement("div");
+    body.className = "body";
+    var t = document.createElement("div");
+    t.className = "t";
+    t.textContent = titleOf(item);
+    body.appendChild(t);
+    var metaHtml = metaOf(item);
+    if (metaHtml){
+      var m = document.createElement("div");
+      m.className = "m";
+      m.innerHTML = metaHtml;
+      body.appendChild(m);
+    }
+
+    var del = document.createElement("button");
+    del.className = "del";
+    del.innerHTML = "&times;";
+    del.onclick = function(){ dropItem(col, item.id); };
+
+    li.appendChild(chk);
+    li.appendChild(body);
+    if (extraOf){
+      var e = extraOf(item);
+      if (e) li.appendChild(e);
+    }
+    li.appendChild(del);
+    listEl.appendChild(li);
+  });
+}
+
+function render(){
+  renderList("uzduotys",
+    document.getElementById("listU"), document.getElementById("emptyU"),
+    function(it){ return it.tekstas || ""; },
+    function(it){ return dateLabel(it); },
+    function(it){ return it.atlikta ? null : gcalLink(it.tekstas || "Užduotis", it); });
+
+  renderList("atrasymai",
+    document.getElementById("listA"), document.getElementById("emptyA"),
+    function(it){ return it.kam || ""; },
+    function(it){
+      var parts = [];
+      if (it.tema) parts.push(escapeText(it.tema));
+      var d = dateLabel(it);
+      if (d) parts.push(d);
+      return parts.join(" · ");
+    },
+    function(it){
+      if (it.atlikta) return null;
+      var pav = "Atrašyti " + (it.kam || "") + (it.tema ? " — " + it.tema : "");
+      return gcalLink(pav, it);
+    });
+
+  renderList("pirkiniai",
+    document.getElementById("listP"), document.getElementById("emptyP"),
+    function(it){ return it.tekstas || ""; },
+    function(){ return ""; });
+
+  var late = 0, now = 0;
+  ["uzduotys", "atrasymai"].forEach(function(col){
+    state[col].forEach(function(it){
+      var st = statusOf(it);
+      if (st === "late") late++;
+      else if (st === "now") now++;
+    });
+  });
+  var shopOpen = state.pirkiniai.filter(function(x){ return !x.atlikta; }).length;
+
+  document.getElementById("sumLate").textContent = late;
+  document.getElementById("sumToday").textContent = now;
+  document.getElementById("sumShop").textContent = shopOpen;
+  document.getElementById("bU").textContent = state.uzduotys.filter(function(x){ return !x.atlikta; }).length;
+  document.getElementById("bA").textContent = state.atrasymai.filter(function(x){ return !x.atlikta; }).length;
+  document.getElementById("bP").textContent = shopOpen;
+}
+
+/* ---------- formos ---------- */
+
+function showTab(which){
+  var map = { U: "viewU", A: "viewA", P: "viewP" };
+  for (var k in map){
+    document.getElementById(map[k]).classList.toggle("hidden", k !== which);
+    document.getElementById("tab" + k).classList.toggle("on", k === which);
+  }
+}
+document.getElementById("tabU").onclick = function(){ showTab("U"); };
+document.getElementById("tabA").onclick = function(){ showTab("A"); };
+document.getElementById("tabP").onclick = function(){ showTab("P"); };
+
+function resetChips(boxId){
+  var box = document.getElementById(boxId);
+  if (!box) return;
+  var btns = box.querySelectorAll(".chip");
+  for (var i = 0; i < btns.length; i++) btns[i].classList.toggle("on", i === 0);
+}
+
+function wireChips(boxId, inputId){
+  var box = document.getElementById(boxId);
+  var input = document.getElementById(inputId);
+  if (!box || !input) return;
+  var btns = box.querySelectorAll(".chip");
+  for (var i = 0; i < btns.length; i++){
+    (function(b){
+      b.onclick = function(){
+        for (var j = 0; j < btns.length; j++) btns[j].classList.remove("on");
+        b.classList.add("on");
+        var d = b.getAttribute("data-d");
+        input.value = d === "" ? "" : dateAfter(d);
+      };
+    })(btns[i]);
+  }
+  input.oninput = function(){
+    for (var j = 0; j < btns.length; j++) btns[j].classList.remove("on");
+  };
+}
+
+document.getElementById("formU").onsubmit = function(e){
+  e.preventDefault();
+  var txt = document.getElementById("inU").value.trim();
+  if (!txt) return;
+  var naujas = {
+    id: newId(), tekstas: txt,
+    data: normDate(document.getElementById("dateU").value),
+    laikas: normTime(document.getElementById("timeU").value),
+    atlikta: false, sukurta: new Date().toISOString()
+  };
+  if (!naujas.data && naujas.laikas) naujas.data = naujas.laikas < nowTime() ? dateAfter(1) : todayStr();
+  putItem("uzduotys", naujas);
+  document.getElementById("inU").value = "";
+  document.getElementById("dateU").value = "";
+  document.getElementById("timeU").value = "";
+  resetChips("chipsU");
+};
+
+document.getElementById("formA").onsubmit = function(e){
+  e.preventDefault();
+  var kam = document.getElementById("inA").value.trim();
+  if (!kam) return;
+  var naujas = {
+    id: newId(), kam: kam,
+    tema: document.getElementById("topicA").value.trim(),
+    data: normDate(document.getElementById("dateA").value),
+    laikas: normTime(document.getElementById("timeA").value),
+    atlikta: false, sukurta: new Date().toISOString()
+  };
+  if (!naujas.data && naujas.laikas) naujas.data = naujas.laikas < nowTime() ? dateAfter(1) : todayStr();
+  putItem("atrasymai", naujas);
+  document.getElementById("inA").value = "";
+  document.getElementById("topicA").value = "";
+  document.getElementById("dateA").value = "";
+  document.getElementById("timeA").value = "";
+  resetChips("chipsA");
+};
+
+document.getElementById("formP").onsubmit = function(e){
+  e.preventDefault();
+  var txt = document.getElementById("inP").value.trim();
+  if (!txt) return;
+  var dalys = txt.split(/,|;| ir /i);
+  for (var i = 0; i < dalys.length; i++){
+    var vienas = dalys[i].trim().replace(/\.$/, "");
+    if (!vienas) continue;
+    putItem("pirkiniai", { id: newId(), tekstas: vienas, atlikta: false, sukurta: new Date().toISOString() });
+  }
+  document.getElementById("inP").value = "";
+};
+
+function clearDone(col){
+  state[col] = state[col].filter(function(x){ return !x.atlikta; });
+  save();
+  render();
+}
+document.getElementById("clearU").onclick = function(){ clearDone("uzduotys"); };
+document.getElementById("clearA").onclick = function(){ clearDone("atrasymai"); };
+document.getElementById("clearP").onclick = function(){ clearDone("pirkiniai"); };
+
+/* ---------- paleidimas ---------- */
+
+var dn = new Date();
+var men = ["sausio","vasario","kovo","balandžio","gegužės","birželio","liepos","rugpjūčio","rugsėjo","spalio","lapkričio","gruodžio"];
+document.getElementById("dateline").textContent = "Šiandien " + dn.getDate() + " " + men[dn.getMonth()] + ", " + dn.getFullYear();
+
+wireChips("chipsU", "dateU");
+wireChips("chipsA", "dateA");
+
+load();
+render();
+initBalsas();
+setInterval(render, 60000);
+</script>
+</body>
+</html>
