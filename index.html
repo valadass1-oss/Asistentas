@@ -66,22 +66,21 @@
   nav button .badge{display:inline-block;min-width:18px;margin-left:4px;padding:0 4px;border-radius:9px;background:var(--line);color:var(--muted);font-size:11px;font-weight:700}
   nav button.on .badge{background:var(--accent);color:var(--card)}
 
-  form.add{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  form.add{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;align-items:end}
+  form.add .pilnas{grid-column:1 / -1}
   input[type=text],input[type=date],input[type=time]{
-    flex:1 1 140px;min-width:0;background:var(--card);border:1px solid var(--line);
-    border-radius:11px;color:var(--text);font-family:inherit;font-size:15px;padding:11px 12px;
+    width:100%;min-width:0;height:46px;background:var(--card);border:1px solid var(--line);
+    border-radius:11px;color:var(--text);font-family:inherit;font-size:15px;padding:0 12px;
   }
-  input.whenin{flex:0 1 128px}
   input::placeholder{color:var(--muted)}
   input:focus{outline:2px solid var(--accent);outline-offset:-1px}
   button.primary{
-    background:var(--accent);color:#fff;border:0;border-radius:11px;
-    font-family:inherit;font-size:15px;font-weight:600;padding:11px 18px;cursor:pointer;
+    background:var(--accent);color:#fff;border:0;border-radius:11px;height:46px;
+    font-family:inherit;font-size:15px;font-weight:600;padding:0 18px;cursor:pointer;
   }
   @media (prefers-color-scheme: dark){ button.primary{color:#17171a} }
-  .laukas{display:flex;flex-direction:column;gap:3px;flex:0 1 138px}
-  .laukas span{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding-left:3px}
-  .laukas input{width:100%}
+  .laukas{display:flex;flex-direction:column;gap:4px;min-width:0}
+  .laukas span{font-size:11.5px;color:var(--muted);letter-spacing:.03em;padding-left:2px}
   .chip{border:1px solid var(--line);background:var(--card);color:var(--muted);font-family:inherit;font-size:13px;padding:7px 11px;border-radius:10px;cursor:pointer}
   .chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
 
@@ -139,10 +138,10 @@
 
   <section id="viewU">
     <form class="add" id="formU">
-      <input type="text" id="inU" placeholder="Ką reikia padaryti?" autocomplete="off">
+      <input type="text" class="pilnas" id="inU" placeholder="Ką reikia padaryti?" autocomplete="off">
       <label class="laukas"><span>Data</span><input type="date" id="dateU"></label>
       <label class="laukas"><span>Laikas</span><input type="time" id="timeU"></label>
-      <button type="submit" class="primary">Įrašyti</button>
+      <button type="submit" class="primary pilnas">Įrašyti</button>
     </form>
     <ul class="list" id="listU"></ul>
     <div class="empty hidden" id="emptyU">Užduočių nėra.</div>
@@ -151,11 +150,11 @@
 
   <section id="viewA" class="hidden">
     <form class="add" id="formA">
-      <input type="text" id="inA" placeholder="Kam atrašyti? (vardas)" autocomplete="off">
-      <input type="text" id="topicA" placeholder="Dėl ko?" autocomplete="off">
+      <input type="text" class="pilnas" id="inA" placeholder="Kam atrašyti? (vardas)" autocomplete="off">
+      <input type="text" class="pilnas" id="topicA" placeholder="Dėl ko?" autocomplete="off">
       <label class="laukas"><span>Data</span><input type="date" id="dateA"></label>
       <label class="laukas"><span>Laikas</span><input type="time" id="timeA"></label>
-      <button type="submit" class="primary">Įrašyti</button>
+      <button type="submit" class="primary pilnas">Įrašyti</button>
     </form>
     <ul class="list" id="listA"></ul>
     <div class="empty hidden" id="emptyA">Neatsakytų laiškų nėra.</div>
@@ -164,8 +163,8 @@
 
   <section id="viewP" class="hidden">
     <form class="add" id="formP">
-      <input type="text" id="inP" placeholder="Ką nupirkti? (pienas, duona, kava)" autocomplete="off">
-      <button type="submit" class="primary">Įrašyti</button>
+      <input type="text" class="pilnas" id="inP" placeholder="Ką nupirkti? (pienas, duona, kava)" autocomplete="off">
+      <button type="submit" class="primary pilnas">Įrašyti</button>
     </form>
     <ul class="list" id="listP"></ul>
     <div class="empty hidden" id="emptyP">Pirkinių sąrašas tuščias.</div>
