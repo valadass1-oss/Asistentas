@@ -79,7 +79,9 @@
     font-family:inherit;font-size:15px;font-weight:600;padding:11px 18px;cursor:pointer;
   }
   @media (prefers-color-scheme: dark){ button.primary{color:#17171a} }
-  .chips{display:flex;gap:6px;flex-wrap:wrap;width:100%;margin:-2px 0 2px}
+  .laukas{display:flex;flex-direction:column;gap:3px;flex:0 1 138px}
+  .laukas span{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding-left:3px}
+  .laukas input{width:100%}
   .chip{border:1px solid var(--line);background:var(--card);color:var(--muted);font-family:inherit;font-size:13px;padding:7px 11px;border-radius:10px;cursor:pointer}
   .chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
 
@@ -138,8 +140,8 @@
   <section id="viewU">
     <form class="add" id="formU">
       <input type="text" id="inU" placeholder="Ką reikia padaryti?" autocomplete="off">
-      <input type="date" class="whenin" id="dateU">
-      <input type="time" class="whenin" id="timeU">
+      <label class="laukas"><span>Data</span><input type="date" id="dateU"></label>
+      <label class="laukas"><span>Laikas</span><input type="time" id="timeU"></label>
       <button type="submit" class="primary">Įrašyti</button>
     </form>
     <ul class="list" id="listU"></ul>
@@ -151,8 +153,8 @@
     <form class="add" id="formA">
       <input type="text" id="inA" placeholder="Kam atrašyti? (vardas)" autocomplete="off">
       <input type="text" id="topicA" placeholder="Dėl ko?" autocomplete="off">
-      <input type="date" class="whenin" id="dateA">
-      <input type="time" class="whenin" id="timeA">
+      <label class="laukas"><span>Data</span><input type="date" id="dateA"></label>
+      <label class="laukas"><span>Laikas</span><input type="time" id="timeA"></label>
       <button type="submit" class="primary">Įrašyti</button>
     </form>
     <ul class="list" id="listA"></ul>
