@@ -67,7 +67,7 @@
   nav button.on .badge{background:var(--accent);color:var(--card)}
 
   form.add{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
-  input[type=text]{
+  input[type=text],input[type=date],input[type=time]{
     flex:1 1 140px;min-width:0;background:var(--card);border:1px solid var(--line);
     border-radius:11px;color:var(--text);font-family:inherit;font-size:15px;padding:11px 12px;
   }
@@ -138,14 +138,8 @@
   <section id="viewU">
     <form class="add" id="formU">
       <input type="text" id="inU" placeholder="Ką reikia padaryti?" autocomplete="off">
-      <div class="chips" id="chipsU">
-        <button type="button" class="chip on" data-d="">Be datos</button>
-        <button type="button" class="chip" data-d="0">Šiandien</button>
-        <button type="button" class="chip" data-d="1">Rytoj</button>
-        <button type="button" class="chip" data-d="2">Poryt</button>
-      </div>
-      <input type="text" class="whenin" id="dateU" placeholder="2026-11-25" inputmode="numeric" autocomplete="off">
-      <input type="text" class="whenin" id="timeU" placeholder="18:30" inputmode="numeric" autocomplete="off">
+      <input type="date" class="whenin" id="dateU">
+      <input type="time" class="whenin" id="timeU">
       <button type="submit" class="primary">Įrašyti</button>
     </form>
     <ul class="list" id="listU"></ul>
@@ -157,14 +151,8 @@
     <form class="add" id="formA">
       <input type="text" id="inA" placeholder="Kam atrašyti? (vardas)" autocomplete="off">
       <input type="text" id="topicA" placeholder="Dėl ko?" autocomplete="off">
-      <div class="chips" id="chipsA">
-        <button type="button" class="chip on" data-d="">Be datos</button>
-        <button type="button" class="chip" data-d="0">Šiandien</button>
-        <button type="button" class="chip" data-d="1">Rytoj</button>
-        <button type="button" class="chip" data-d="2">Poryt</button>
-      </div>
-      <input type="text" class="whenin" id="dateA" placeholder="2026-11-25" inputmode="numeric" autocomplete="off">
-      <input type="text" class="whenin" id="timeA" placeholder="18:30" inputmode="numeric" autocomplete="off">
+      <input type="date" class="whenin" id="dateA">
+      <input type="time" class="whenin" id="timeA">
       <button type="submit" class="primary">Įrašyti</button>
     </form>
     <ul class="list" id="listA"></ul>
@@ -483,7 +471,7 @@ function gcalStamp(d){
          "T" + pad2(d.getHours()) + pad2(d.getMinutes()) + "00";
 }
 
-function gcalLink(title, item){
+function gcalLink(title, item, col){
   if (!item.data || !item.laikas) return null;
   var dalys = item.data.split("-");
   var hm = item.laikas.split(":");
@@ -498,7 +486,21 @@ function gcalLink(title, item){
   a.href = u;
   a.target = "_blank";
   a.rel = "noopener";
-  a.textContent = "Kalendorius";
+  if (item.kalendoriuje){
+    a.textContent = "Kalendoriuje ✓";
+    a.style.opacity = ".6";
+  } else {
+    a.textContent = "Kalendorius";
+  }
+  a.onclick = function(){
+    if (item.kalendoriuje) return;
+    setTimeout(function(){
+      var copy = {};
+      for (var k in item) copy[k] = item[k];
+      copy.kalendoriuje = true;
+      putItem(col, copy);
+    }, 300);
+  };
   return a;
 }
 
@@ -604,7 +606,7 @@ function render(){
     document.getElementById("listU"), document.getElementById("emptyU"),
     function(it){ return it.tekstas || ""; },
     function(it){ return dateLabel(it); },
-    function(it){ return it.atlikta ? null : gcalLink(it.tekstas || "Užduotis", it); });
+    function(it){ return it.atlikta ? null : gcalLink(it.tekstas || "Užduotis", it, "uzduotys"); });
 
   renderList("atrasymai",
     document.getElementById("listA"), document.getElementById("emptyA"),
@@ -619,7 +621,7 @@ function render(){
     function(it){
       if (it.atlikta) return null;
       var pav = "Atrašyti " + (it.kam || "") + (it.tema ? " — " + it.tema : "");
-      return gcalLink(pav, it);
+      return gcalLink(pav, it, "atrasymai");
     });
 
   renderList("pirkiniai",
@@ -658,33 +660,6 @@ document.getElementById("tabU").onclick = function(){ showTab("U"); };
 document.getElementById("tabA").onclick = function(){ showTab("A"); };
 document.getElementById("tabP").onclick = function(){ showTab("P"); };
 
-function resetChips(boxId){
-  var box = document.getElementById(boxId);
-  if (!box) return;
-  var btns = box.querySelectorAll(".chip");
-  for (var i = 0; i < btns.length; i++) btns[i].classList.toggle("on", i === 0);
-}
-
-function wireChips(boxId, inputId){
-  var box = document.getElementById(boxId);
-  var input = document.getElementById(inputId);
-  if (!box || !input) return;
-  var btns = box.querySelectorAll(".chip");
-  for (var i = 0; i < btns.length; i++){
-    (function(b){
-      b.onclick = function(){
-        for (var j = 0; j < btns.length; j++) btns[j].classList.remove("on");
-        b.classList.add("on");
-        var d = b.getAttribute("data-d");
-        input.value = d === "" ? "" : dateAfter(d);
-      };
-    })(btns[i]);
-  }
-  input.oninput = function(){
-    for (var j = 0; j < btns.length; j++) btns[j].classList.remove("on");
-  };
-}
-
 document.getElementById("formU").onsubmit = function(e){
   e.preventDefault();
   var txt = document.getElementById("inU").value.trim();
@@ -700,7 +675,6 @@ document.getElementById("formU").onsubmit = function(e){
   document.getElementById("inU").value = "";
   document.getElementById("dateU").value = "";
   document.getElementById("timeU").value = "";
-  resetChips("chipsU");
 };
 
 document.getElementById("formA").onsubmit = function(e){
@@ -720,7 +694,6 @@ document.getElementById("formA").onsubmit = function(e){
   document.getElementById("topicA").value = "";
   document.getElementById("dateA").value = "";
   document.getElementById("timeA").value = "";
-  resetChips("chipsA");
 };
 
 document.getElementById("formP").onsubmit = function(e){
@@ -751,8 +724,6 @@ var dn = new Date();
 var men = ["sausio","vasario","kovo","balandžio","gegužės","birželio","liepos","rugpjūčio","rugsėjo","spalio","lapkričio","gruodžio"];
 document.getElementById("dateline").textContent = "Šiandien " + dn.getDate() + " " + men[dn.getMonth()] + ", " + dn.getFullYear();
 
-wireChips("chipsU", "dateU");
-wireChips("chipsA", "dateA");
 
 load();
 render();
